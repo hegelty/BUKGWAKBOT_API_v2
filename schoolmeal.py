@@ -92,7 +92,7 @@ def addMealData(meal_date, school_code, school_name, goe_code):
 def reformatMeal(meal_str) -> str:
     for i in range(0, 10):
         meal_str = meal_str.replace(str(i), "")
-    string_to_remove = ["*", "$", ".", "뽱", "컁", "꿜", "(조)", "(조/과)", "(조과)", "(과)", "(조식)", "(석/과)", "(옥정)", "(완)",
+    string_to_remove = ["*", "$", ".", " 발", " 과", "뽱", "컁", "꿜", "(조)", "(조/과)", "(조과)", "(과)", "(조식)", "(석/과)", "(옥정)", "(완)",
                         "CB", "()"]
     for i in string_to_remove:
         meal_str = meal_str.replace(i, "")

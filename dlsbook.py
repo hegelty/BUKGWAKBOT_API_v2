@@ -22,8 +22,8 @@ URL_MAIN = "/r/newReading/main/main.jsp"
 URL_FIND_SCHOOL = "/r/newReading/search/schoolListData.jsp"
 URL_SEARCH_BOOKS = "/r/newReading/search/schoolSearchResult.jsp"
 DLS_COOKIES = {
-    'D_VISITOR_ID': 'df49d637-796f-09d0-932d-fd58ad5cf7f5',
-    'JSESSIONID': 'euUDAtEPLQFwKixczqduPQw50Ed57a27AznTBH9VQwZqCVvA7Ca61Yuc4qgSyAbL.wasdls02_servlet_engine2'
+    'D_VISITOR_ID': '684e6d3d-c41f-b47c-7a41-fbe4cd71e6e6',
+    'JSESSIONID': 'UNPu2jC61nfnPedAzUSNZTHanfRuSe2qA33JbedLd6mapFbn7HRTHYk4AiEg81C6.wasdls02_servlet_engine1'
 }
 DLS_HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
