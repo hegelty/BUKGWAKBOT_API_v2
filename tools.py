@@ -4,7 +4,7 @@ import requests
 keysFile = open("keys.json", "r")
 keys = json.loads(keysFile.read())
 NIES_API_KEY = keys["NIES_API_KEY"]
-goe_name_dict = {
+GOE_NAME_DICT = {
     "서울교육청": "서울특별시교육청", "서울시교육청": "서울특별시교육청", "서울특별시교육청": "서울특별시교육청",
     "부산교육청": "부산광역시교육청", "부산시교육청": "부산광역시교육청", "부산광역시교육청": "부산광역시교육청",
     "인천교육청": "인천광역시교육청", "인천시교육청": "인천광역시교육청", "인천광역시교육청": "인천광역시교육청",
@@ -23,7 +23,7 @@ goe_name_dict = {
     "경남교육청": "경상남도교육청", "경상남도교육청": "경상남도교육청",
     "재외교육청": "재외한국학교교육청", "한국학교교육청": "재외한국학교교육청", "재외한국교육청": "재외한국학교교육청", "재외한국학교교육청": "재외한국학교교육청"
 }
-local_name_dict = {
+LOCAL_NAME_DICT = {
     "서울": "서울특별시", "서울시": "서울특별시", "서울특별시": "서울특별시",
     "부산": "부산광역시", "부산시": "부산광역시", "부산광역시": "부산광역시",
     "인천": "인천광역시", "인천시": "인천광역시", "인천광역시": "인천광역시",
@@ -42,7 +42,7 @@ local_name_dict = {
     "경남": "경상남도", "경상남도": "경상남도",
     "해외": "국외", "국외": "국외"
 }
-school_type_dict = {
+SCHOOL_TYPE_DICT = {
     "초": "초등학교", "초등": "초등학교", "초등학교": "초등학교",
     "중": "중등학교", "중등": "중등학교", "중등학교": "초등학교",
     "고": "고등학교", "고등": "고등학교", "고등학교": "초등학교",
@@ -67,17 +67,17 @@ nies_result_code_dict = {
 def getSchoolInfo(school_name="", school_name_eng="", school_code="", goe_code="", goe_name="", local_name="",
                   school_type=""):
 
-    if goe_name and goe_name not in goe_name_dict:
+    if goe_name and goe_name not in GOE_NAME_DICT:
         return {
             'success': "실패",
             'reason': "잘못된 교육청 이름입니다."
         }
-    if local_name and local_name not in local_name_dict:
+    if local_name and local_name not in LOCAL_NAME_DICT:
         return {
             'success': "실패",
             'reason': "잘못된 지역 이름입니다."
         }
-    if school_type and school_type not in school_type_dict:
+    if school_type and school_type not in SCHOOL_TYPE_DICT:
         return {
             'success': "실패",
             'reason': "잘못된 학교 중류입니다."
@@ -92,9 +92,9 @@ def getSchoolInfo(school_name="", school_name_eng="", school_code="", goe_code="
     if school_name_eng: params["ENG_SCHUL_NM"] = school_name_eng
     if school_code: params["SD_SCHUL_CODE"] = school_code
     if goe_code: params["ATPT_OFCDC_SC_CODE"] = goe_code
-    if goe_name: params["ATPT_OFCDC_SC_NM"] = goe_name_dict[goe_name]
-    if local_name: params["LCTN_SC_NM"] = local_name_dict[local_name]
-    if school_type: params["SCHUL_KND_SC_MN"] = school_type_dict[school_type]
+    if goe_name: params["ATPT_OFCDC_SC_NM"] = GOE_NAME_DICT[goe_name]
+    if local_name: params["LCTN_SC_NM"] = LOCAL_NAME_DICT[local_name]
+    if school_type: params["SCHUL_KND_SC_MN"] = SCHOOL_TYPE_DICT[school_type]
 
     school_data = json.loads(requests.get("https://open.neis.go.kr/hub/schoolInfo", params=params).text)
     if "RESULT" in school_data:

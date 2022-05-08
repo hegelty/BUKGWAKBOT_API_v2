@@ -1,6 +1,5 @@
-import json
-import requests
 import sqlite3
+
 from tools import *
 
 conn = sqlite3.connect("./MealDate.db")
@@ -48,13 +47,14 @@ def getMeal(meal_date, school_name="", school_code="", goe_code="", local="", re
     result = {
         'success': "성공",
         'count': len(data),
+        'school': school_name,
         'data': []
     }
     for i in data:
         result['data'].append({
             'type': i[3],
             'menu': i[4],
-            'allergy': i[5],
+            'allergy': json.loads(i[5]),
             'nutrition': i[6],
             'origin': i[7],
             'cal': i[8]
@@ -84,7 +84,7 @@ def addMealData(meal_date, school_code, school_name, goe_code):
         curs.execute("INSERT INTO meals VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", (
             school_name, school_code, meal_date, data['MMEAL_SC_NM'],
             reformatMeal(data['DDISH_NM'].replace("<br/>", "\n")),
-            getAllergyInfo(data['DDISH_NM'].replace("<br/>", "\n")), data['NTR_INFO'].replace("<br/>", "\n"),
+            json.dumps(getAllergyInfo(reformatMeal(data['DDISH_NM'].replace("<br/>", "\n")), data['DDISH_NM'].replace("<br/>", "\n"))), data['NTR_INFO'].replace("<br/>", "\n"),
             data['ORPLC_INFO'].replace("<br/>", "\n"), data['CAL_INFO']))
     conn.commit()
 
@@ -96,10 +96,14 @@ def reformatMeal(meal_str) -> str:
                         "CB", "()"]
     for i in string_to_remove:
         meal_str = meal_str.replace(i, "")
-    meal_str = meal_str.replace("발\n", "\n").replace("과\n", "\n").strip()
+    meal_str = '\n'.join(map(lambda x: x.strip(), meal_str.replace("발\n", "\n").replace("과\n", "\n").split("\n")))
     return meal_str
 
 
-def getAllergyInfo(menu_str):
+def getAllergyInfo(menu_str, original_str):
     menus = menu_str.split("\n")
-    return "지원 예정"
+    result = {}
+    for i, menu in enumerate(original_str.split("\n")):
+        alg = menu.split("(")[-1].split(")")[0]
+        result[menus[i]] = alg
+    return result

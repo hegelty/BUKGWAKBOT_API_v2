@@ -85,6 +85,6 @@ V1: https://github.com/hegelty/BUKGWAKBOT_API
 ## 개발예정
 - [ ] 시간표(컴시간/나이스)
 - [ ] 학교 정보
-- [ ] 도서검색(DLS)
+- [x] 도서검색(DLS)
 - [ ] 멜론 노래 검색, 가사
 - [ ] 멜론 차트
