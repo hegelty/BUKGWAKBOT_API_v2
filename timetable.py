@@ -5,11 +5,12 @@ import re
 import json
 from urllib import parse
 
-comcigan_url = 'http://112.186.146.81:4082'
-
+comcigan_url = 'http://comci.kr:4082'
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'}
 
 def get_code():
-    resp = str(requests.get(comcigan_url))
+    resp = requests.get(comcigan_url+'/st', headers=headers).text.decode('euc-kr').encode('utf-8')
+    print(resp)
     comcigan_code = re.compile('\\./[0-9]+\\?[0-9]+l').match(resp)[0][1:]
     code1 = re.compile('성명=자료.자료[0-9]+').match(resp)[0][8:]
     code2 = re.compile('자료.자료[0-9]+[sb]').match(resp)[0][5:-4]
