@@ -1,3 +1,4 @@
+import requests
 from bs4 import BeautifulSoup
 from tools import *
 
@@ -22,13 +23,18 @@ URL_MAIN = "/r/newReading/main/main.jsp"
 URL_FIND_SCHOOL = "/r/newReading/search/schoolListData.jsp"
 URL_SEARCH_BOOKS = "/r/newReading/search/schoolSearchResult.jsp"
 DLS_COOKIES = {
-    'D_VISITOR_ID': 'df49d637-796f-09d0-932d-fd58ad5cf7f5',
-    'JSESSIONID': 'euUDAtEPLQFwKixczqduPQw50Ed57a27AznTBH9VQwZqCVvA7Ca61Yuc4qgSyAbL.wasdls02_servlet_engine2'
+    'JSESSIONID': 'PRbO12agZDjSlcbfoobk78x51wGRP9aiAg1jAUCV8AFW42eo7nB2BqrVDSrZGpta.wasdls02_servlet_engine2'
 }
 DLS_HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36',
+    'Accept-Encoding': 'gzip, deflate, br'
 }
+
+
+def getSession(domain):
+    resp = requests.get(domain+URL_MAIN, headers=DLS_HEADERS)
+    DLS_COOKIES['JSESSIONID'] = resp.cookies.get_dict()['JSESSIONID']
 
 
 def findSchool(local, school):
@@ -89,7 +95,11 @@ def searchBooks(school_name, local, query, option):
         'lineSize': 50,
         'cbSort': 'STIT'
     }
-    resp = requests.post(domain + URL_SEARCH_BOOKS, cookies=DLS_COOKIES, data=data, headers=DLS_HEADERS)
+    session = requests.Session()
+    session.get(domain+'/r/newReading/search/schoolSearchForm.jsp', headers=DLS_HEADERS)
+    print(session.cookies.get_dict())
+    resp = session.post(domain + URL_SEARCH_BOOKS, headers=DLS_HEADERS, cookies=session.cookies.get_dict(), data=data)
+    print(session.cookies.get_dict())
     soup = BeautifulSoup(resp.text, 'html.parser')
     images = []
     for i in soup.select("div.bd_list_no > div.book_image > img"):

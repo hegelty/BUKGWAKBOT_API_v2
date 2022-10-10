@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-import schoolmeal, dlsbook
+import schoolmeal, dlsbook, timetable
 import tools
 
 app = FastAPI()
@@ -26,3 +26,7 @@ async def searchDLSBooks(school_name: str, local: str, query: str, option: str):
 async def showSchoolInfo(school_name: str, local_name: str):
     return tools.getSchoolInfo(school_name=school_name, local_name=local_name)
 
+
+@app.get("/timetable")
+async def showTimeTable(school_name: str, local_code: str = "", school_code: str = "", next_week: str = "0"):
+    return timetable.getTimeTable(school_name=school_name, local_code=local_code, school_code=school_code, next_week=next_week)
