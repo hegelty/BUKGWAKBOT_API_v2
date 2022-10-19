@@ -1,5 +1,4 @@
 import base64
-
 import requests
 import re
 import json
@@ -9,25 +8,29 @@ comcigan_url = 'http://comci.kr:4082'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'}
 
 def get_code():
-    resp = requests.get(comcigan_url+'/st', headers=headers).text.decode('euc-kr').encode('utf-8')
-    print(resp)
-    comcigan_code = re.compile('\\./[0-9]+\\?[0-9]+l').match(resp)[0][1:]
-    code1 = re.compile('성명=자료.자료[0-9]+').match(resp)[0][8:]
-    code2 = re.compile('자료.자료[0-9]+[sb]').match(resp)[0][5:-4]
-    code3 = re.compile('=H시간표.자료[0-9]+').match(resp)[0][8:]
-    code4 = re.compile('일일자료=자료.자료[0-9]+').match(resp)[0][10:]
-    code5 = re.compile('원자료=자료.자료[0-9]+').match(resp)[0][9:]
-    return comcigan_code, code1, code2, code3, code4, code5
+    resp = requests.get(comcigan_url + '/st', headers=headers)
+    resp.encoding = 'euc-kr'
+    resp = resp.text
+    comcigan_code = re.findall('\\./[0-9]+\\?[0-9]+l', resp)[0][1:]
+    code0 = re.findall('sc_data\(\'[0-9]+_', resp)[0][9:-1]
+    code1 = re.findall('성명=자료.자료[0-9]+', resp)[0][8:]
+    code2 = re.findall('자료.자료[0-9]+\\[sb\\]', resp)[0][5:-4]
+    code3 = re.findall('=H시간표.자료[0-9]+', resp)[0][8:]
+    code4 = re.findall('일일자료=자료.자료[0-9]+', resp)[0][10:]
+    code5 = re.findall('원자료=자료.자료[0-9]+', resp)[0][9:]
+    return comcigan_code, code0, code1, code2, code3, code4, code5
 
 
 def get_school_code(school_name, local_code, school_code, comcigan_code):
-    resp = json.loads(str(requests.get(comcigan_url + comcigan_code + parse.urlencode(school_name, encoding='euc-kr'))))
+    resp = requests.get(comcigan_url + comcigan_code + parse.quote(school_name, encoding='euc-kr'))
+    resp.encoding = 'UTF-8'
+    resp = json.loads(resp.text.strip(chr(0)))
     if len(resp["학교검색"]) == 0:
         return {
             'success': False,
             'reason': '학교를 찾을 수 없습니다.'
         }
-    elif len(resp["학교검색"]) > 1:
+    elif len(resp["학교검색"]) > 1: #2개 이상이 검색될
         if (school_code):
             for data in resp["학교검색"]:
                 if data[3] == school_code:
@@ -37,8 +40,7 @@ def get_school_code(school_name, local_code, school_code, comcigan_code):
                 if data[0] == local_code:
                     return data[0], data[3]
         return -1, resp
-
-    return resp[0][0], resp[0][3]
+    return resp['학교검색'][0][0], resp['학교검색'][0][3]
 
 
 def getTimeTable(school_name, local_code, school_code, next_week):
@@ -56,7 +58,7 @@ def getTimeTable(school_name, local_code, school_code, next_week):
             'reason': 'local_code와 school_code는 정수여야 합니다.'
         }
 
-    comcigan_code, code1, code2, code3, code4, code5 = get_code()
+    comcigan_code, code0, code1, code2, code3, code4, code5 = get_code()
 
     local_code, school_code = get_school_code(school_name, local_code, school_code, comcigan_code)
     if local_code == -1:
@@ -66,8 +68,12 @@ def getTimeTable(school_name, local_code, school_code, next_week):
             "data": school_code["학교검색"]
         }
 
-    sc = base64.b64encode(f"{str(local_code)}_{school_code}_0_{str(int(next_week) + 1)}".encode('utf-8'))
-    resp = json.loads(str(requests.get(f'{comcigan_url}{comcigan_code[:8]}{sc}')).replace("\n", " "))
+    sc = base64.b64encode(f"{str(code0)}_{school_code}_0_{str(int(next_week) + 1)}".encode('utf-8'))
+    resp = requests.get(f'{comcigan_url}{comcigan_code[:8]}{str(sc)[2:-1]}', headers=headers)
+    resp.encoding = 'UTF-8'
+    resp = resp.text.split('\n')[0]
+    resp = json.loads(resp)
+
     result = {
         "success": True,
         "학교명": resp["학교명"],
@@ -88,12 +94,12 @@ def getTimeTable(school_name, local_code, school_code, next_week):
     for i in resp["자료" + code4]:
         cls = 0
         if grade == 0:
-            result["data"][0] = ""
+            result["data"].append("")
             grade += 1
             continue
         for j in i:
             if cls == 0:
-                result["data"][grade] = [{}]
+                result["data"].append([{}])
                 cls += 1
                 continue
             result["data"][grade].append({
@@ -101,17 +107,19 @@ def getTimeTable(school_name, local_code, school_code, next_week):
                 "class": cls,
                 "timetable": [[]]
             })
+
             for day in range(1, 7):
-                result["data"][grade][cls]["timetable"].append([[]])
-                original_period = original_timetable[grade][cls][day][period]
+                result["data"][grade][cls]["timetable"].append([{}])
                 for period in range(1, 9):
+                    original_period = original_timetable[grade][cls][day][period]
+                    period_num = j[day][period]
                     period_data = {
                         "period": period,
-                        "teacher": teacher_list[period // 100],
-                        "sub": sub_list[period % 100],
-                        "subject": subject_list[period % 100],
+                        "teacher": teacher_list[period_num // 100],
+                        "sub": sub_list[period_num % 100],
+                        "subject": subject_list[period_num % 100],
                         "room": "강의실",
-                        "replaced": period == original_period,
+                        "replaced": period_num != original_period,
                         "original": {
                             "teacher": teacher_list[original_period // 100],
                             "sub": sub_list[original_period % 100],
@@ -121,4 +129,5 @@ def getTimeTable(school_name, local_code, school_code, next_week):
                     }
                     result["data"][grade][cls]["timetable"][day].append(period_data)
             cls += 1
+        grade += 1
     return result

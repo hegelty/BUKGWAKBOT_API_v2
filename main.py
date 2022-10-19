@@ -28,5 +28,5 @@ async def showSchoolInfo(school_name: str, local_name: str):
 
 
 @app.get("/timetable")
-async def showTimeTable(school_name: str, local_code: str = "", school_code: str = "", next_week: str = "0"):
+async def showTimeTable(school_name: str, local_code: int = 0, school_code: int = 0, next_week: str = "0"):
     return timetable.getTimeTable(school_name=school_name, local_code=local_code, school_code=school_code, next_week=next_week)
