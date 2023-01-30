@@ -69,9 +69,11 @@ def getTimeTable(school_name, local_code, school_code, next_week):
         }
 
     sc = base64.b64encode(f"{str(code0)}_{school_code}_0_{str(int(next_week) + 1)}".encode('utf-8'))
-    resp = requests.get(f'{comcigan_url}{comcigan_code[:8]}{str(sc)[2:-1]}', headers=headers)
+    print(f'{comcigan_url}{comcigan_code[:7]}{str(sc)[2:-1]}')
+    resp = requests.get(f'{comcigan_url}{comcigan_code[:7]}{str(sc)[2:-1]}', headers=headers)
     resp.encoding = 'UTF-8'
     resp = resp.text.split('\n')[0]
+    print(resp)
     resp = json.loads(resp)
 
     result = {
