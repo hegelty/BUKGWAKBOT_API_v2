@@ -36,5 +36,5 @@ async def showTimeTable(school_name: str, local_code: int = 0, school_code: int 
 
 
 if __name__ == '__main__':
-    dlsbook.getCookies()
+    # dlsbook.getCookies()
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
