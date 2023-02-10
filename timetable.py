@@ -43,7 +43,7 @@ def get_school_code(school_name, local_code, school_code, comcigan_code):
     return resp['학교검색'][0][0], resp['학교검색'][0][3]
 
 
-def getTimeTable(school_name, local_code, school_code, next_week):
+def getTimeTable(school_name, local_code, school_code, next_week, simple):
     if next_week != "0" and next_week != "1":
         return {
             'success': False,
@@ -69,11 +69,9 @@ def getTimeTable(school_name, local_code, school_code, next_week):
         }
 
     sc = base64.b64encode(f"{str(code0)}_{school_code}_0_{str(int(next_week) + 1)}".encode('utf-8'))
-    print(f'{comcigan_url}{comcigan_code[:7]}{str(sc)[2:-1]}')
     resp = requests.get(f'{comcigan_url}{comcigan_code[:7]}{str(sc)[2:-1]}', headers=headers)
     resp.encoding = 'UTF-8'
     resp = resp.text.split('\n')[0]
-    print(resp)
     resp = json.loads(resp)
 
     result = {
@@ -115,21 +113,32 @@ def getTimeTable(school_name, local_code, school_code, next_week):
                 for period in range(1, 9):
                     original_period = original_timetable[grade][cls][day][period]
                     period_num = j[day][period]
-                    period_data = {
-                        "period": period,
-                        "teacher": teacher_list[period_num // 100],
-                        "sub": sub_list[period_num % 100],
-                        "subject": subject_list[period_num % 100],
-                        "room": "강의실",
-                        "replaced": period_num != original_period,
-                        "original": {
-                            "teacher": teacher_list[original_period // 100],
-                            "sub": sub_list[original_period % 100],
-                            "subject": subject_list[original_period % 100],
-                            "room": "원래 강의실"
+                    if simple == 1:
+                        period_data = {
+                            "period": period,
+                            "teacher": teacher_list[period_num // 100],
+                            "sub": sub_list[period_num % 100],
+                            "subject": subject_list[period_num % 100],
+                            "replaced": period_num != original_period
                         }
-                    }
+                    else:
+                        period_data = {
+                            "period": period,
+                            "teacher": teacher_list[period_num // 100],
+                            "sub": sub_list[period_num % 100],
+                            "subject": subject_list[period_num % 100],
+                            "room": "강의실",
+                            "replaced": period_num != original_period,
+                            "original": {
+                                "teacher": teacher_list[original_period // 100],
+                                "sub": sub_list[original_period % 100],
+                                "subject": subject_list[original_period % 100],
+                                "room": "원래 강의실"
+                            }
+                        }
                     result["data"][grade][cls]["timetable"][day].append(period_data)
             cls += 1
         grade += 1
     return result
+
+

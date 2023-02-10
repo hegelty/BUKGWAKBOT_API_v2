@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import uvicorn
 import schoolmeal, dlsbook, timetable
 import tools
 
@@ -18,7 +19,7 @@ async def showSchoolMeal(date: int, school_name: str = "", school_code: str = ""
 
 
 @app.get("/searchbook")
-async def searchDLSBooks(school_name: str, local: str, query: str, option: str):
+async def searchDLSBooks(school_name: str, local: str, query: str, option: str = '전체'):
     return dlsbook.searchBooks(school_name=school_name, local=local, query=query, option=option)
 
 
@@ -28,5 +29,10 @@ async def showSchoolInfo(school_name: str, local_name: str):
 
 
 @app.get("/timetable")
-async def showTimeTable(school_name: str, local_code: int = 0, school_code: int = 0, next_week: str = "0"):
-    return timetable.getTimeTable(school_name=school_name, local_code=local_code, school_code=school_code, next_week=next_week)
+async def showTimeTable(school_name: str, local_code: int = 0, school_code: int = 0, next_week: str = "0", simple: int = 0):
+    return timetable.getTimeTable(school_name=school_name, local_code=local_code, school_code=school_code, next_week=next_week, simple=simple)
+
+
+if __name__ == '__main__':
+    dlsbook.getCookies()
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

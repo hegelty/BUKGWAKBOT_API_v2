@@ -1,30 +1,32 @@
+import threading
+import time
+
 from bs4 import BeautifulSoup
 from tools import *
+from selenium import webdriver
 
 DLS_DOMAINS_DICT = {'서울특별시': 'https://reading.ssem.or.kr',
                     '부산광역시': 'https://reading.pen.go.kr',
-                    '대구광역시': 'https://reading.edunavi.kr',
-                    '인천광역시': 'https://book.ice.go.kr',
-                    '광주광역시': 'https://book.gen.go.kr',
-                    '대전광역시': 'https://reading.edurang.net',
+                    '대구광역시': 'http://reading.edunavi.kr',
+                    '인천광역시': 'http://book.ice.go.kr',
+                    '광주광역시': 'http://book.gen.go.kr',
+                    '대전광역시': 'http://reading.edurang.net',
                     '울산광역시': 'https://reading.ulsanedu.kr',
                     '세종특별자치시': 'https://reading.sje.go.kr',
                     '경기도': 'https://reading.gglec.go.kr',
                     '강원도': 'https://reading.gweduone.net',
-                    '충청북도': 'https://reading.cbe.go.kr',
-                    '충청남도': 'https://reading.edus.or.kr',
+                    '충청북도': 'http://reading.cbe.go.kr',
+                    '충청남도': 'http://reading.edus.or.kr',
                     '전라북도': 'https://reading.jbedu.kr',
                     '전라남도': 'https://reading.jnei.go.kr',
-                    '경상북도': 'https://reading.gyo6.net',
-                    '경상남도': 'https://reading.gne.go.kr',
+                    '경상북도': 'http://reading.gyo6.net',
+                    '경상남도': 'http://reading.gne.go.kr',
                     '제주특별자치도': 'https://reading.jje.go.kr'}
 URL_MAIN = "/r/newReading/main/main.jsp"
 URL_FIND_SCHOOL = "/r/newReading/search/schoolListData.jsp"
 URL_SEARCH_BOOKS = "/r/newReading/search/schoolSearchResult.jsp"
-DLS_COOKIES = {
-    'D_VISITOR_ID': '684e6d3d-c41f-b47c-7a41-fbe4cd71e6e6',
-    'JSESSIONID': 'UNPu2jC61nfnPedAzUSNZTHanfRuSe2qA33JbedLd6mapFbn7HRTHYk4AiEg81C6.wasdls02_servlet_engine1'
-}
+URL_GET_COOKIES = "/r/newReading/search/schoolListForm.jsp"
+DLS_COOKIES = {}
 DLS_HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36'
@@ -33,13 +35,35 @@ DLS_HEADERS = {
 
 def findSchool(local, school):
     domain = DLS_DOMAINS_DICT[local]
-    resp = requests.post(domain + URL_FIND_SCHOOL, cookies=DLS_COOKIES, data={'txtSearchWord': "도서검색", 'schoolSearch': school}, headers=DLS_HEADERS)
+    resp = requests.post(domain + URL_FIND_SCHOOL, cookies=DLS_COOKIES[local], data={'txtSearchWord': "도서검색", 'schoolSearch': school}, headers=DLS_HEADERS, verify=False)
     soup = BeautifulSoup(resp.text, 'html.parser')
     school_list = soup.find_all(class_="school_name")
     if len(school_list) <= 1:
         return -1
     schoolCode = int(str(school_list[1]).strip().split("selectSchool('")[1].split("',")[0])
+    print(schoolCode)
     return schoolCode
+
+
+def getCookies():
+    options = webdriver.FirefoxOptions()
+    options.headless = True
+    driver = webdriver.Firefox(options=options)
+    for local in DLS_DOMAINS_DICT:
+        domain = DLS_DOMAINS_DICT[local]
+        driver.get(domain+URL_GET_COOKIES)
+        time.sleep(1)
+        driver.find_element('xpath','//*[@id="schoolData"]/div[3]/section/div[3]/ul/li[2]/div/div[2]/a').click()
+        time.sleep(0.2)
+        cookies = driver.get_cookies()
+        DLS_COOKIES[local] = {}
+        for cookie in cookies:
+            DLS_COOKIES[local][cookie['name']] = cookie['value']
+
+        print(cookies)
+
+    threading.Timer(60*60*24, getCookies).start()
+
 
 
 def searchBooks(school_name, local, query, option):
@@ -89,7 +113,8 @@ def searchBooks(school_name, local, query, option):
         'lineSize': 50,
         'cbSort': 'STIT'
     }
-    resp = requests.post(domain + URL_SEARCH_BOOKS, cookies=DLS_COOKIES, data=data, headers=DLS_HEADERS)
+    print(DLS_COOKIES[local])
+    resp = requests.post(domain + URL_SEARCH_BOOKS, cookies=DLS_COOKIES[local], data=data, headers=DLS_HEADERS, verify=False)
     soup = BeautifulSoup(resp.text, 'html.parser')
     images = []
     for i in soup.select("div.bd_list_no > div.book_image > img"):
@@ -143,3 +168,4 @@ def searchBooks(school_name, local, query, option):
         result["books"].append(info)
 
     return result
+getCookies()
