@@ -25,11 +25,9 @@ def get_school_code(school_name, local_code, school_code, comcigan_code):
     resp = requests.get(comcigan_url + comcigan_code + parse.quote(school_name, encoding='euc-kr'))
     resp.encoding = 'UTF-8'
     resp = json.loads(resp.text.strip(chr(0)))
+    print(resp["학교검색"])
     if len(resp["학교검색"]) == 0:
-        return {
-            'success': False,
-            'reason': '학교를 찾을 수 없습니다.'
-        }
+        return -2, resp
     elif len(resp["학교검색"]) > 1: #2개 이상이 검색될
         if (school_code):
             for data in resp["학교검색"]:
@@ -66,6 +64,11 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
             "success": False,
             "reason": "2개 이상의 학교가 검색됩니다.",
             "data": school_code["학교검색"]
+        }
+    elif local_code == -2:
+        return {
+            "success": False,
+            "reason": "학교를 찾을 수 없습니다"
         }
 
     sc = base64.b64encode(f"{str(code0)}_{school_code}_0_{str(int(next_week) + 1)}".encode('utf-8'))
