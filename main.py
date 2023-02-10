@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
-import schoolmeal, dlsbook, timetable
+import schoolmeal, timetable
+# import dlsbook
 import tools
 
 app = FastAPI()
@@ -17,10 +18,11 @@ async def showSchoolMeal(date: int, school_name: str = "", school_code: str = ""
     return schoolmeal.getMeal(meal_date=date, school_name=school_name, school_code=school_code, goe_code=goe_code,
                               local=local, reload=reload)
 
-
+'''
 @app.get("/searchbook")
 async def searchDLSBooks(school_name: str, local: str, query: str, option: str = '전체'):
     return dlsbook.searchBooks(school_name=school_name, local=local, query=query, option=option)
+'''
 
 
 @app.get("/schoolinfo")
