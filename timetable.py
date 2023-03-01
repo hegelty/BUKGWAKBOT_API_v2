@@ -4,20 +4,20 @@ import re
 import json
 from urllib import parse
 
-comcigan_url = 'http://comci.kr:4082'
+comcigan_url = 'http://comci.net:4082'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'}
 
 def get_code():
     resp = requests.get(comcigan_url + '/st', headers=headers)
     resp.encoding = 'euc-kr'
     resp = resp.text
-    comcigan_code = re.findall('\\./[0-9]+\\?[0-9]+l', resp)[0][1:]
+    comcigan_code = re.findall('\\.\\/[0-9]+\\?[0-9]+l', resp)[0][1:]
     code0 = re.findall('sc_data\(\'[0-9]+_', resp)[0][9:-1]
     code1 = re.findall('성명=자료.자료[0-9]+', resp)[0][8:]
     code2 = re.findall('자료.자료[0-9]+\\[sb\\]', resp)[0][5:-4]
     code3 = re.findall('=H시간표.자료[0-9]+', resp)[0][8:]
-    code4 = re.findall('일일자료=자료.자료[0-9]+', resp)[0][10:]
-    code5 = re.findall('원자료=자료.자료[0-9]+', resp)[0][9:]
+    code4 = re.findall('일일자료=Q자료\\(자료\\.자료[0-9]+', resp)[0][14:]
+    code5 = re.findall('원자료=Q자료\\(자료\\.자료[0-9]+', resp)[0][13:]
     return comcigan_code, code0, code1, code2, code3, code4, code5
 
 
@@ -76,6 +76,7 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
     resp.encoding = 'UTF-8'
     resp = resp.text.split('\n')[0]
     resp = json.loads(resp)
+    print(resp)
 
     result = {
         "success": True,
