@@ -76,7 +76,6 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
     resp.encoding = 'UTF-8'
     resp = resp.text.split('\n')[0]
     resp = json.loads(resp)
-    print(resp)
 
     result = {
         "success": True,
