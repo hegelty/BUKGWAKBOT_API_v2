@@ -111,7 +111,7 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
             })
 
             for day in range(1, original_timetable[grade][cls][0]+1):
-                result["data"][grade][cls]["timetable"].append([{}])
+                result["data"][grade][cls]["timetable"].append([])
                 for period in range(1, original_timetable[grade][cls][day][0]+1):
                     original_period = original_timetable[grade][cls][day][period]
                     period_num = j[day][period]
