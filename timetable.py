@@ -25,20 +25,19 @@ def get_school_code(school_name, local_code, school_code, comcigan_code):
     resp = requests.get(comcigan_url + comcigan_code + parse.quote(school_name, encoding='euc-kr'))
     resp.encoding = 'UTF-8'
     resp = json.loads(resp.text.strip(chr(0)))
-    print(resp["학교검색"])
     if len(resp["학교검색"]) == 0:
-        return -2, resp
+        return -2, -2, resp
     elif len(resp["학교검색"]) > 1: #2개 이상이 검색될
         if (school_code):
             for data in resp["학교검색"]:
                 if data[3] == school_code:
-                    return data[0], data[3]
+                    return data[0], data[2], data[3]
         if (local_code):
             for data in resp["학교검색"]:
                 if data[0] == local_code:
-                    return data[0], data[3]
-        return -1, resp
-    return resp['학교검색'][0][0], resp['학교검색'][0][3]
+                    return data[0], data[2], data[3]
+        return -1, -1, resp
+    return resp['학교검색'][0][0], resp['학교검색'][0][2], resp['학교검색'][0][3]
 
 
 def getTimeTable(school_name, local_code, school_code, next_week, simple):
@@ -58,11 +57,11 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
 
     comcigan_code, code0, code1, code2, code3, code4, code5 = get_code()
 
-    local_code, school_code = get_school_code(school_name, local_code, school_code, comcigan_code)
+    local_code, school_name, school_code = get_school_code(school_name, local_code, school_code, comcigan_code)
     if local_code == -1:
         return {
             "success": False,
-            "reason": "2개 이상의 학교가 검색됩니다.",
+            "reason": "2개 이상의 학교가 검색됩니다. school_code인자에 원하는 학교의 학교 코드를 입력해 요청하세요.",
             "data": school_code["학교검색"]
         }
     elif local_code == -2:
@@ -79,7 +78,7 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
 
     result = {
         "success": True,
-        "학교명": resp["학교명"],
+        "학교명": school_name,
         "지역명": resp["지역명"],
         "학년도": resp["학년도"],
         "시작일": resp["시작일"],
@@ -90,7 +89,7 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
 
     teacher_list = resp["자료" + code1]
     sub_list = resp["자료" + code2]
-    subject_list = resp["긴자료" + code2]
+    # subject_list = resp["긴자료" + code2]
     original_timetable = resp["자료" + code5]
 
     grade = 0
@@ -111,9 +110,9 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
                 "timetable": [[]]
             })
 
-            for day in range(1, 7):
+            for day in range(1, original_timetable[grade][cls][0]+1):
                 result["data"][grade][cls]["timetable"].append([{}])
-                for period in range(1, 9):
+                for period in range(1, original_timetable[grade][cls][day][0]+1):
                     original_period = original_timetable[grade][cls][day][period]
                     period_num = j[day][period]
                     if simple == 1:
@@ -121,7 +120,8 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
                             "period": period,
                             "teacher": teacher_list[period_num // 100],
                             "sub": sub_list[period_num % 100],
-                            "subject": subject_list[period_num % 100],
+                            "subject": sub_list[period_num % 100],
+                            # "subject": subject_list[period_num % 100],
                             "replaced": period_num != original_period
                         }
                     else:
@@ -129,13 +129,15 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
                             "period": period,
                             "teacher": teacher_list[period_num // 100],
                             "sub": sub_list[period_num % 100],
-                            "subject": subject_list[period_num % 100],
+                            "subject": sub_list[period_num % 100],
+                            # "subject": subject_list[period_num % 100],
                             "room": "강의실",
                             "replaced": period_num != original_period,
                             "original": {
                                 "teacher": teacher_list[original_period // 100],
                                 "sub": sub_list[original_period % 100],
-                                "subject": subject_list[original_period % 100],
+                                "subject": sub_list[original_period % 100],
+                                # "subject": subject_list[original_period % 100],
                                 "room": "원래 강의실"
                             }
                         }
