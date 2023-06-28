@@ -93,8 +93,6 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
     sub_list[0] = ""
     # subject_list = resp["긴자료" + code2]
     original_timetable = resp["자료" + code5]
-    print(original_timetable)
-    print(resp["자료" + code4])
     grade = 0
     for i in resp["자료" + code4]:
         cls = 0
@@ -115,7 +113,6 @@ def getTimeTable(school_name, local_code, school_code, next_week, simple):
 
             for day in range(1, original_timetable[grade][cls][0]+1):
                 result["data"][grade][cls]["timetable"].append([])
-                print(original_timetable[grade][cls][day][0]+1)
                 for period in range(1, original_timetable[grade][cls][day][0]+1):
                     original_period = original_timetable[grade][cls][day][period]
                     if j[day][0] < period:
